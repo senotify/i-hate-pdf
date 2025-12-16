@@ -1,7 +1,6 @@
 import { Router, Request, Response } from "express";
 import fs from "fs";
 import path from "path";
-import { decrypt } from "node-qpdf2";
 import { metadataStorage, createFileMetadata } from "../utils/metadata";
 import { getUploadDirectory } from "../utils/storage";
 import { ErrorResponse } from "../types";
@@ -80,6 +79,8 @@ router.post("/unlock", async (req: Request, res: Response) => {
 
     // Try to decrypt the PDF using node-qpdf2
     try {
+      // Use dynamic import for node-qpdf2 (ESM module)
+      const { decrypt } = await import("node-qpdf2");
       await decrypt({
         input: inputPath,
         output: outputPath,

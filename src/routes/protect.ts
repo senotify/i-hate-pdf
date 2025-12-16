@@ -1,7 +1,6 @@
 import { Router, Request, Response } from "express";
 import fs from "fs";
 import path from "path";
-import { encrypt } from "node-qpdf2";
 import { metadataStorage, createFileMetadata } from "../utils/metadata";
 import { getUploadDirectory } from "../utils/storage";
 import { ErrorResponse } from "../types";
@@ -119,6 +118,8 @@ router.post("/protect", async (req: Request, res: Response) => {
       encryptOptions.restrictions = restrictions;
     }
 
+    // Use dynamic import for node-qpdf2 (ESM module)
+    const { encrypt } = await import("node-qpdf2");
     await encrypt(encryptOptions);
 
     // Clean up temp input file if created
