@@ -65,6 +65,7 @@ export default function PDFPreviewModal({
         await page.render({
           canvasContext: context,
           viewport: viewport,
+          canvas: canvas,
         }).promise;
 
         images[pageNum] = canvas.toDataURL();

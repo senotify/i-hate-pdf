@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { UploadedFile } from "./FileUpload";
 import { convertFile } from "../services/api";
-import PDFPreviewModal from "./PDFPreviewModal";
 
 interface ConvertToolProps {
   file: UploadedFile;
@@ -43,7 +42,6 @@ export default function ConvertTool({
     downloadUrl: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
   const [availableFormats, setAvailableFormats] = useState<
     Array<{ value: string; label: string; description: string }>
   >([]);

@@ -107,6 +107,7 @@ export default function SplitTool({
           await page.render({
             canvasContext: context,
             viewport: viewport,
+            canvas: canvas,
           }).promise;
 
           newThumbnails[pageNum] = canvas.toDataURL();
