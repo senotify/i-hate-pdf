@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getApiBaseUrl } from "../utils/apiUrl";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { DndMultiBackend, DndBackendOptions } from "../utils/dndBackend";
 import { UploadedFile } from "./FileUpload";
@@ -312,7 +313,7 @@ export default function EditTool({
   const handleDownload = () => {
     if (editResult) {
       const downloadUrl = `${
-        import.meta.env.VITE_API_URL || "http://localhost:3000"
+        getApiBaseUrl()
       }${editResult.downloadUrl}`;
       window.open(downloadUrl, "_blank");
     }

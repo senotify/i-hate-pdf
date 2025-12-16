@@ -1,7 +1,7 @@
 import axios, { AxiosProgressEvent } from "axios";
+import { getApiUrl } from "../utils/apiUrl";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const API_BASE_URL = getApiUrl();
 
 export interface UploadResponse {
   fileId: string;

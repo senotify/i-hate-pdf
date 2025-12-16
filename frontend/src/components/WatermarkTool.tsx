@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getApiBaseUrl } from "../utils/apiUrl";
 import { UploadedFile } from "./FileUpload";
 import { addWatermark, WatermarkOptions } from "../services/api";
 import PDFPreviewModal from "./PDFPreviewModal";
@@ -68,7 +69,7 @@ export default function WatermarkTool({
   const handleDownload = () => {
     if (result) {
       const downloadUrl = `${
-        import.meta.env.VITE_API_URL || "http://localhost:3000"
+        getApiBaseUrl()
       }${result.downloadUrl}`;
       window.open(downloadUrl, "_blank");
     }

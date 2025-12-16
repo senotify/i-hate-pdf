@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getApiBaseUrl } from "../utils/apiUrl";
 import { UploadedFile } from "./FileUpload";
 import { compressFile } from "../services/api";
 import PDFPreviewModal from "./PDFPreviewModal";
@@ -65,7 +66,7 @@ export default function CompressTool({
   const handleDownload = () => {
     if (compressResult) {
       const downloadUrl = `${
-        import.meta.env.VITE_API_URL || "http://localhost:3000"
+        getApiBaseUrl()
       }${compressResult.downloadUrl}`;
       window.open(downloadUrl, "_blank");
     }

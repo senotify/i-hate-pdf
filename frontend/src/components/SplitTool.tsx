@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getApiBaseUrl } from "../utils/apiUrl";
 import { UploadedFile } from "./FileUpload";
 import { getPagePreviews, splitFile, PagePreview } from "../services/api";
 import * as pdfjsLib from "pdfjs-dist";
@@ -68,7 +69,7 @@ export default function SplitTool({
     try {
       console.log("Fetching PDF for thumbnails...");
       // Fetch the PDF file from the server
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const apiUrl = getApiBaseUrl();
       const response = await fetch(`${apiUrl}/api/download/${fileId}`);
 
       if (!response.ok) {
@@ -249,7 +250,7 @@ export default function SplitTool({
 
   const handleDownload = (downloadUrl: string) => {
     const fullUrl = `${
-      import.meta.env.VITE_API_URL || "http://localhost:3000"
+      getApiBaseUrl()
     }${downloadUrl}`;
     window.open(fullUrl, "_blank");
   };

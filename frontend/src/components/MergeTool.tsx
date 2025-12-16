@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getApiBaseUrl } from "../utils/apiUrl";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { DndMultiBackend, DndBackendOptions } from "../utils/dndBackend";
 import { UploadedFile } from "./FileUpload";
@@ -129,7 +130,7 @@ export default function MergeTool({
   const handleDownload = () => {
     if (mergeResult) {
       const downloadUrl = `${
-        import.meta.env.VITE_API_URL || "http://localhost:3000"
+        getApiBaseUrl()
       }${mergeResult.downloadUrl}`;
       window.open(downloadUrl, "_blank");
     }

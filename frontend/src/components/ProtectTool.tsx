@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getApiBaseUrl } from "../utils/apiUrl";
 import { UploadedFile } from "./FileUpload";
 import { protectFile, Permissions } from "../services/api";
 
@@ -67,7 +68,7 @@ export default function ProtectTool({
   const handleDownload = () => {
     if (result) {
       const downloadUrl = `${
-        import.meta.env.VITE_API_URL || "http://localhost:3000"
+        getApiBaseUrl()
       }${result.downloadUrl}`;
       window.open(downloadUrl, "_blank");
     }

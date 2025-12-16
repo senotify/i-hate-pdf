@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getApiBaseUrl } from "../utils/apiUrl";
 import { UploadedFile } from "./FileUpload";
 import { convertFile } from "../services/api";
 
@@ -95,7 +96,7 @@ export default function ConvertTool({
   const handleDownload = () => {
     if (convertResult) {
       const downloadUrl = `${
-        import.meta.env.VITE_API_URL || "http://localhost:3000"
+        getApiBaseUrl()
       }${convertResult.downloadUrl}`;
       window.open(downloadUrl, "_blank");
     }

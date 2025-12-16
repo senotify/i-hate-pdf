@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist";
+import { getApiBaseUrl } from "../utils/apiUrl";
 
 // Set up PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
@@ -37,7 +38,7 @@ export default function PDFPreviewModal({
 
     try {
       // Fetch the PDF file
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const apiUrl = getApiBaseUrl();
       const response = await fetch(`${apiUrl}/api/download/${fileId}`);
 
       if (!response.ok) {
