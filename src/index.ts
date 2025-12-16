@@ -46,6 +46,17 @@ app.get("/api/health/ready", (req, res) => {
 // Serve static frontend files in production
 if (process.env.NODE_ENV === "production") {
   const frontendPath = path.join(__dirname, "../frontend/dist");
+  console.log(`Serving frontend from: ${frontendPath}`);
+
+  // Check if frontend directory exists
+  const fs = require("fs");
+  if (fs.existsSync(frontendPath)) {
+    console.log("✓ Frontend directory found");
+    console.log("Frontend files:", fs.readdirSync(frontendPath));
+  } else {
+    console.error("✗ Frontend directory not found at:", frontendPath);
+  }
+
   app.use(express.static(frontendPath));
 
   // Serve index.html for all non-API routes (SPA support)
@@ -54,7 +65,16 @@ if (process.env.NODE_ENV === "production") {
     if (req.path.startsWith("/api")) {
       return notFoundHandler(req, res, next);
     }
-    res.sendFile(path.join(frontendPath, "index.html"));
+
+    const indexPath = path.join(frontendPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      console.error("✗ index.html not found at:", indexPath);
+      res
+        .status(404)
+        .send("Frontend not found. Please check build configuration.");
+    }
   });
 } else {
   // 404 handler for undefined routes in development
