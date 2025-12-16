@@ -1,11 +1,11 @@
-# PDF Toolkit
+# IHatePDF
 
-A comprehensive web-based PDF manipulation application.
+A comprehensive web-based PDF manipulation application that makes working with PDFs easy and free.
 
 ## Project Structure
 
 ```
-pdf-toolkit/
+ihatepdf/
 ├── src/                    # Backend source code
 │   ├── routes/            # API route handlers
 │   ├── services/          # Business logic services

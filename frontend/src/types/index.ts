@@ -1,4 +1,4 @@
-// Type definitions for the PDF Toolkit Frontend
+// Type definitions for IHatePDF Frontend
 
 export interface FileMetadata {
   fileId: string;

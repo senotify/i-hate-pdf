@@ -79,7 +79,30 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">PDF Toolkit</h1>
+          <div className="flex items-center gap-3">
+            {/* Broken Heart Logo */}
+            <svg
+              className="h-10 w-10 text-red-500"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              {/* Crack in the heart */}
+              <path
+                d="M12 4.5 L10 8 L12 10 L11 13 L12 21.35"
+                stroke="white"
+                strokeWidth="1.5"
+                fill="none"
+                strokeLinecap="round"
+              />
+            </svg>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">IHatePDF</h1>
+              <p className="text-xs text-gray-500 italic">
+                Because PDFs are frustrating
+              </p>
+            </div>
+          </div>
           <p className="mt-2 text-sm text-gray-600">
             Professional PDF tools for all your document needs
           </p>

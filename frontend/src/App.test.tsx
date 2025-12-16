@@ -2,9 +2,9 @@ import { render, screen } from "@testing-library/react";
 import App from "./App";
 
 describe("App", () => {
-  test("renders PDF Toolkit header", () => {
+  test("renders IHatePDF header", () => {
     render(<App />);
-    const headerElement = screen.getByText(/PDF Toolkit/i);
+    const headerElement = screen.getByText(/IHatePDF/i);
     expect(headerElement).toBeInTheDocument();
   });
 

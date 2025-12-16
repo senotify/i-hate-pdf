@@ -44,7 +44,7 @@ app.use(errorHandler);
 startCleanupScheduler();
 
 app.listen(PORT, () => {
-  console.log(`PDF Toolkit backend running on port ${PORT}`);
+  console.log(`IHatePDF backend running on port ${PORT}`);
 });
 
 export default app;
