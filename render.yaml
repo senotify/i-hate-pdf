@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: ihatepdf
+    env: node
+    buildCommand: npm install && npm run build && cd frontend && npm install && npm run build
+    startCommand: node dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: UPLOAD_DIR
+        value: /opt/render/project/uploads
+      - key: MAX_FILE_SIZE
+        value: 104857600
+      - key: FILE_RETENTION_MINUTES
+        value: 60
+      - key: RATE_LIMIT_REQUESTS
+        value: 100
+      - key: RATE_LIMIT_WINDOW_MINUTES
+        value: 60
+    disk:
+      name: uploads
+      mountPath: /opt/render/project/uploads
+      sizeGB: 1

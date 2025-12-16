@@ -29,9 +29,17 @@ ensureUploadDirectory();
 // Setup routes
 setupRoutes(app);
 
-// Health check endpoint
+// Health check endpoints
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
+});
+
+app.get("/api/health/live", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.get("/api/health/ready", (req, res) => {
+  res.json({ status: "ready", timestamp: new Date().toISOString() });
 });
 
 // 404 handler for undefined routes
