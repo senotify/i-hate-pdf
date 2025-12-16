@@ -18,10 +18,10 @@ const PORT = process.env.PORT || 3000;
 // Security middleware
 app.use(enforceHttps); // Enforce HTTPS in production
 app.use(getHelmetConfig()); // Security headers
-app.use(cors(getCorsOptions())); // CORS configuration
 app.use(express.json());
 
-// Apply rate limiting to all API routes
+// Apply CORS and rate limiting ONLY to API routes
+app.use("/api", cors(getCorsOptions()));
 app.use("/api", apiRateLimiter);
 
 // Ensure upload directory exists
