@@ -18,7 +18,17 @@ const PORT = process.env.PORT || 3000;
 // Security middleware
 app.use(enforceHttps); // Enforce HTTPS in production
 app.use(getHelmetConfig()); // Security headers
-app.use(express.json());
+
+// Request size limits (prevent large payload attacks)
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ limit: "1mb", extended: true }));
+
+// Request timeout (prevent slowloris attacks)
+app.use((req, res, next) => {
+  req.setTimeout(30000); // 30 seconds
+  res.setTimeout(30000);
+  next();
+});
 
 // Apply CORS and rate limiting ONLY to API routes
 app.use("/api", cors(getCorsOptions()));

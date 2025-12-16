@@ -6,8 +6,8 @@ import rateLimit from "express-rate-limit";
  */
 export const apiRateLimiter = rateLimit({
   windowMs:
-    parseInt(process.env.RATE_LIMIT_WINDOW_MINUTES || "60", 10) * 60 * 1000, // Convert minutes to milliseconds
-  max: parseInt(process.env.RATE_LIMIT_REQUESTS || "100", 10), // Limit each IP to X requests per window
+    parseInt(process.env.RATE_LIMIT_WINDOW_MINUTES || "15", 10) * 60 * 1000, // Convert minutes to milliseconds (default 15 min)
+  max: parseInt(process.env.RATE_LIMIT_REQUESTS || "50", 10), // Limit each IP to X requests per window (default 50)
   message: {
     error: {
       code: "RATE_LIMIT_EXCEEDED",
