@@ -145,11 +145,14 @@ async function applyOperation(
 ): Promise<PDFDocument> {
   switch (operation.type) {
     case "rotate":
-      return applyRotate(pdfDoc, operation.params);
+      return applyRotate(
+        pdfDoc,
+        operation.params as { pageIndices: number[]; rotation: number }
+      );
     case "delete":
-      return applyDelete(pdfDoc, operation.params);
+      return applyDelete(pdfDoc, operation.params as { pageIndices: number[] });
     case "reorder":
-      return applyReorder(pdfDoc, operation.params);
+      return applyReorder(pdfDoc, operation.params as { newOrder: number[] });
     default:
       throw new Error(`Unsupported operation type: ${operation.type}`);
   }
