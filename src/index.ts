@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
 import { setupRoutes } from "./routes";
 import { startCleanupScheduler } from "./services/cleanup";
 import { ensureUploadDirectory } from "./utils/storage";
@@ -42,8 +43,23 @@ app.get("/api/health/ready", (req, res) => {
   res.json({ status: "ready", timestamp: new Date().toISOString() });
 });
 
-// 404 handler for undefined routes
-app.use(notFoundHandler);
+// Serve static frontend files in production
+if (process.env.NODE_ENV === "production") {
+  const frontendPath = path.join(__dirname, "../frontend/dist");
+  app.use(express.static(frontendPath));
+
+  // Serve index.html for all non-API routes (SPA support)
+  app.get("*", (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith("/api")) {
+      return notFoundHandler(req, res, next);
+    }
+    res.sendFile(path.join(frontendPath, "index.html"));
+  });
+} else {
+  // 404 handler for undefined routes in development
+  app.use(notFoundHandler);
+}
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
