@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { UploadedFile } from "./FileUpload";
 import { compressFile } from "../services/api";
+import PDFPreviewModal from "./PDFPreviewModal";
 
 interface CompressToolProps {
   file: UploadedFile;
@@ -32,6 +33,7 @@ export default function CompressTool({
     reductionPercentage: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleCompress = async () => {
     setError(null);
@@ -42,6 +44,7 @@ export default function CompressTool({
       const response = await compressFile(file.fileId, compressionLevel);
 
       setCompressResult(response);
+      setShowPreview(true);
       onCompressComplete?.(
         response.outputFileId,
         response.downloadUrl,
@@ -233,8 +236,8 @@ export default function CompressTool({
         </div>
       )}
 
-      {/* Success Message with Size Reduction */}
-      {compressResult && (
+      {/* Success Message with Size Reduction - Only show when preview is closed */}
+      {compressResult && !showPreview && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="space-y-3">
             <div className="flex items-center">
@@ -276,15 +279,26 @@ export default function CompressTool({
               </div>
             </div>
 
-            {/* Download Button */}
+            {/* Preview Button */}
             <button
-              onClick={handleDownload}
-              className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium"
+              onClick={() => setShowPreview(true)}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
             >
-              Download Compressed PDF
+              Preview & Download
             </button>
           </div>
         </div>
+      )}
+
+      {/* PDF Preview Modal */}
+      {compressResult && (
+        <PDFPreviewModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          onDownload={handleDownload}
+          fileId={compressResult.outputFileId}
+          title="Compressed PDF Preview"
+        />
       )}
     </div>
   );

@@ -3,6 +3,7 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { DndMultiBackend, DndBackendOptions } from "../utils/dndBackend";
 import { UploadedFile } from "./FileUpload";
 import { mergeFiles } from "../services/api";
+import PDFPreviewModal from "./PDFPreviewModal";
 
 interface MergeToolProps {
   files: UploadedFile[];
@@ -87,6 +88,7 @@ export default function MergeTool({
     downloadUrl: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const moveFile = (dragIndex: number, hoverIndex: number) => {
     const newFiles = [...orderedFiles];
@@ -112,6 +114,7 @@ export default function MergeTool({
       const response = await mergeFiles(fileIds);
 
       setMergeResult(response);
+      setShowPreview(true);
       onMergeComplete?.(response.outputFileId, response.downloadUrl);
     } catch (err: any) {
       const errorMsg =
@@ -224,7 +227,7 @@ export default function MergeTool({
           </div>
         )}
 
-        {mergeResult && (
+        {mergeResult && !showPreview && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -244,15 +247,26 @@ export default function MergeTool({
                 </p>
               </div>
               <button
-                onClick={handleDownload}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                onClick={() => setShowPreview(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
               >
-                Download
+                Preview & Download
               </button>
             </div>
           </div>
         )}
       </div>
+
+      {/* PDF Preview Modal */}
+      {mergeResult && (
+        <PDFPreviewModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          onDownload={handleDownload}
+          fileId={mergeResult.outputFileId}
+          title="Merged PDF Preview"
+        />
+      )}
     </DndProvider>
   );
 }

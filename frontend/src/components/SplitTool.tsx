@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { UploadedFile } from "./FileUpload";
 import { getPagePreviews, splitFile, PagePreview } from "../services/api";
 import * as pdfjsLib from "pdfjs-dist";
+import PDFPreviewModal from "./PDFPreviewModal";
 
 // Set up PDF.js worker using local file
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
@@ -28,6 +29,7 @@ export default function SplitTool({
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [thumbnails, setThumbnails] = useState<{ [key: number]: string }>({});
+  const [previewFileIndex, setPreviewFileIndex] = useState<number | null>(null);
 
   // Load previews when file changes
   useEffect(() => {
@@ -231,6 +233,8 @@ export default function SplitTool({
     try {
       const response = await splitFile(file.fileId, nonEmptyRanges);
       setSplitResult(response);
+      // Automatically show preview for the first file
+      setPreviewFileIndex(0);
       onSplitComplete?.(response.outputFileIds, response.downloadUrls);
     } catch (err: any) {
       const errorMsg =
@@ -456,8 +460,8 @@ export default function SplitTool({
         </div>
       )}
 
-      {/* Success Display */}
-      {splitResult && (
+      {/* Success Display - Only show when preview is closed */}
+      {splitResult && previewFileIndex === null && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-start">
             <svg
@@ -478,20 +482,51 @@ export default function SplitTool({
               </p>
               <div className="space-y-2">
                 {splitResult.downloadUrls.map((url, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleDownload(url)}
-                    className="block w-full text-left px-3 py-2 bg-white border border-green-300 rounded hover:bg-green-50 transition-colors"
-                  >
-                    <span className="text-sm text-gray-700">
-                      Download File {index + 1}
-                    </span>
-                  </button>
+                  <div key={index} className="flex gap-2">
+                    <button
+                      onClick={() => setPreviewFileIndex(index)}
+                      className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    >
+                      <span className="text-sm">Preview File {index + 1}</span>
+                    </button>
+                    <button
+                      onClick={() => handleDownload(url)}
+                      className="px-3 py-2 bg-white border border-green-300 rounded hover:bg-green-50 transition-colors"
+                    >
+                      <svg
+                        className="h-5 w-5 text-gray-700"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* PDF Preview Modal */}
+      {splitResult && previewFileIndex !== null && (
+        <PDFPreviewModal
+          isOpen={previewFileIndex !== null}
+          onClose={() => setPreviewFileIndex(null)}
+          onDownload={() => {
+            handleDownload(splitResult.downloadUrls[previewFileIndex]);
+            setPreviewFileIndex(null);
+          }}
+          fileId={splitResult.outputFileIds[previewFileIndex]}
+          title={`Split PDF Preview - File ${previewFileIndex + 1}`}
+        />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { UploadedFile } from "./FileUpload";
 import { addPageNumbers, PageNumberOptions } from "../services/api";
+import PDFPreviewModal from "./PDFPreviewModal";
 
 interface PageNumberToolProps {
   file: UploadedFile;
@@ -31,6 +32,7 @@ export default function PageNumberTool({
     downloadUrl: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleAddPageNumbers = async () => {
     setError(null);
@@ -49,6 +51,7 @@ export default function PageNumberTool({
       const response = await addPageNumbers(file.fileId, options);
 
       setResult(response);
+      setShowPreview(true);
       onComplete?.(response.outputFileId, response.downloadUrl);
     } catch (err: any) {
       const errorMsg =
@@ -310,8 +313,8 @@ export default function PageNumberTool({
         </div>
       )}
 
-      {/* Success Message */}
-      {result && (
+      {/* Success Message - Only show when preview is closed */}
+      {result && !showPreview && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="space-y-3">
             <div className="flex items-center">
@@ -331,15 +334,26 @@ export default function PageNumberTool({
               </p>
             </div>
 
-            {/* Download Button */}
+            {/* Preview Button */}
             <button
-              onClick={handleDownload}
-              className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium"
+              onClick={() => setShowPreview(true)}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
             >
-              Download PDF with Page Numbers
+              Preview & Download
             </button>
           </div>
         </div>
+      )}
+
+      {/* PDF Preview Modal */}
+      {result && (
+        <PDFPreviewModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          onDownload={handleDownload}
+          fileId={result.outputFileId}
+          title="PDF with Page Numbers Preview"
+        />
       )}
     </div>
   );
