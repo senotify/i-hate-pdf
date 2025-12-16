@@ -7,29 +7,10 @@ import { CorsOptions } from "cors";
  * In production, restrict to specific origins
  */
 export function getCorsOptions(): CorsOptions {
-  const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(",")
-    : ["http://localhost:5173", "http://localhost:3000"];
-
+  // In production with same-origin deployment, allow all origins
+  // The frontend is served from the same domain, so CORS is not an issue
   return {
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      // In development, allow all origins
-      if (process.env.NODE_ENV === "development") {
-        return callback(null, true);
-      }
-
-      // In production, check against allowed origins
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: true, // Allow all origins
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
