@@ -277,12 +277,31 @@ export default function EditTool({
       }
 
       // 3. Handle reordering (after deletions)
-      const newOrder = previews.map((p) => p.pageNumber - 1);
+      // After deletions, we need to check if the remaining pages are in a different order
+      const remainingOriginalIndices = previews.map((p) => p.pageNumber - 1);
+
+      // Sort the remaining indices to get the expected order after deletion
+      const sortedRemainingIndices = [...remainingOriginalIndices].sort(
+        (a, b) => a - b
+      );
+
+      // Create a mapping from original index to position in the remaining pages
+      const indexToPosition = new Map<number, number>();
+      sortedRemainingIndices.forEach((originalIdx, position) => {
+        indexToPosition.set(originalIdx, position);
+      });
+
+      // Build the new order: for each page in current order, get its position in the remaining pages
+      const newOrder = remainingOriginalIndices.map(
+        (originalIdx) => indexToPosition.get(originalIdx)!
+      );
+
       const expectedOrder = Array.from(
         { length: newOrder.length },
         (_, i) => i
       );
 
+      // Only add reorder operation if the order actually changed
       if (!newOrder.every((val, idx) => val === expectedOrder[idx])) {
         operations.push({
           type: "reorder",
