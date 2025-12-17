@@ -2,6 +2,8 @@ import { Router, Request, Response } from "express";
 import { PDFDocument, rgb } from "pdf-lib";
 import fs from "fs";
 import path from "path";
+import { exec } from "child_process";
+import { promisify } from "util";
 import { metadataStorage, createFileMetadata } from "../utils/metadata";
 import { getUploadDirectory } from "../utils/storage";
 import { ErrorResponse } from "../types";
@@ -11,8 +13,9 @@ import {
   isCloudinaryConfigured,
 } from "../utils/cloudinaryStorage";
 import { detectFileType, getMimeType } from "../utils/fileValidation";
-import { convert as pdfPoppler } from "pdf-poppler";
 import sharp from "sharp";
+
+const execAsync = promisify(exec);
 
 const router = Router();
 const USE_CLOUDINARY = isCloudinaryConfigured();
@@ -136,7 +139,7 @@ router.post("/convert", async (req: Request, res: Response) => {
 });
 
 /**
- * Convert PDF to image format
+ * Convert PDF to image format using Ghostscript
  */
 async function convertPdfToImage(
   pdfBytes: Buffer,
@@ -147,29 +150,23 @@ async function convertPdfToImage(
     getUploadDirectory(),
     `temp_pdf_${Date.now()}.pdf`
   );
-  const tempOutputDir = getUploadDirectory();
+  const tempOutputPath = path.join(
+    getUploadDirectory(),
+    `temp_image_${Date.now()}.png`
+  );
 
   try {
     // Write PDF to temporary file
     fs.writeFileSync(tempInputPath, pdfBytes);
 
-    // Convert PDF to image using pdf-poppler
-    // This converts the first page to PNG
-    const options = {
-      format: "png" as const,
-      out_dir: tempOutputDir,
-      out_prefix: `temp_convert_${Date.now()}`,
-      page: 1, // Convert only first page
-    };
+    // Use Ghostscript to convert PDF to PNG (first page only)
+    // -dFirstPage=1 -dLastPage=1 ensures only first page is converted
+    const gsCommand = `gs -dSAFER -dBATCH -dNOPAUSE -dFirstPage=1 -dLastPage=1 -sDEVICE=png16m -r150 -sOutputFile="${tempOutputPath}" "${tempInputPath}"`;
 
-    await pdfPoppler(tempInputPath, options);
+    await execAsync(gsCommand);
 
     // Read the generated PNG file
-    const generatedPngPath = path.join(
-      tempOutputDir,
-      `${options.out_prefix}-1.png`
-    );
-    let imageBuffer: Buffer = fs.readFileSync(generatedPngPath);
+    let imageBuffer: Buffer = fs.readFileSync(tempOutputPath);
 
     // Convert to requested format using sharp if needed
     const extension = format === "jpeg" || format === "jpg" ? "jpg" : format;
@@ -178,6 +175,7 @@ async function convertPdfToImage(
         await sharp(imageBuffer).jpeg({ quality: 90 }).toBuffer()
       );
     } else if (extension === "png") {
+      // Optimize PNG
       imageBuffer = Buffer.from(await sharp(imageBuffer).png().toBuffer());
     }
 
@@ -225,19 +223,17 @@ async function convertPdfToImage(
     // Store metadata
     metadataStorage.set(outputMetadata.fileId, outputMetadata);
 
-    // Clean up temporary PNG file
-    if (fs.existsSync(generatedPngPath)) {
-      fs.unlinkSync(generatedPngPath);
-    }
-
     return {
       outputFileId: outputMetadata.fileId,
       downloadUrl: `/api/download/${outputMetadata.fileId}`,
     };
   } finally {
-    // Clean up temporary PDF file
+    // Clean up temporary files
     if (fs.existsSync(tempInputPath)) {
       fs.unlinkSync(tempInputPath);
+    }
+    if (fs.existsSync(tempOutputPath)) {
+      fs.unlinkSync(tempOutputPath);
     }
   }
 }

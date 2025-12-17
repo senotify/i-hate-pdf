@@ -10,8 +10,9 @@ IHatePDF supports bidirectional conversion between PDF and image formats using i
 
 - **Input:** PDF files
 - **Output:** PNG, JPEG/JPG
-- **Technology:** pdf-poppler + sharp
+- **Technology:** Ghostscript + sharp
 - **Converts:** First page of PDF
+- **Resolution:** 150 DPI
 
 ### Image to PDF
 
@@ -26,15 +27,15 @@ IHatePDF supports bidirectional conversion between PDF and image formats using i
 
 ```typescript
 // 1. PDF is saved to temporary file
-// 2. pdf-poppler converts PDF to PNG using poppler-utils
+// 2. Ghostscript renders PDF to PNG at 150 DPI
 // 3. sharp processes the image (format conversion, optimization)
 // 4. Result is saved and metadata created
 ```
 
 **Process:**
 
-1. Uses `pdftoppm` from poppler-utils to render PDF page
-2. Converts to PNG at high quality
+1. Uses Ghostscript to render first page of PDF to PNG
+2. Converts at 150 DPI for good quality/size balance
 3. If JPEG requested, sharp converts PNG → JPEG (90% quality)
 4. Cleans up temporary files automatically
 
@@ -104,19 +105,19 @@ Content-Type: application/json
 **macOS:**
 
 ```bash
-brew install poppler
+brew install ghostscript
 npm install
 ```
 
 **Ubuntu/Debian:**
 
 ```bash
-sudo apt-get install poppler-utils
+sudo apt-get install ghostscript
 npm install
 ```
 
 **Windows:**
-Download poppler from [poppler for Windows](http://blog.alivate.com.au/poppler-windows/)
+Download Ghostscript from [ghostscript.com](https://www.ghostscript.com/download/gsdnld.html)
 
 ### Railway Deployment
 
@@ -124,13 +125,13 @@ Automatically installed via `nixpacks.toml`:
 
 ```toml
 [phases.setup]
-nixPkgs = ["nodejs", "ghostscript", "poppler_utils"]
+nixPkgs = ["nodejs", "ghostscript"]
 ```
 
 Railway installs:
 
-- ✅ poppler-utils (for PDF rendering)
-- ✅ Node.js packages (pdf-poppler, sharp)
+- ✅ Ghostscript (for PDF rendering and compression)
+- ✅ Node.js packages (sharp, pdf-lib)
 
 ## Technical Details
 
@@ -138,13 +139,12 @@ Railway installs:
 
 **npm packages:**
 
-- `pdf-poppler` - Node.js wrapper for poppler-utils
 - `sharp` - High-performance image processing
 - `pdf-lib` - PDF creation and manipulation
 
 **System packages:**
 
-- `poppler-utils` - PDF rendering tools (pdftoppm, pdfinfo, etc.)
+- `ghostscript` - PDF rendering and manipulation (gs command)
 
 ### Temporary Files
 
@@ -327,30 +327,30 @@ curl http://localhost:3000/api/download/<output-file-id> \
 ### Verify Installation
 
 ```bash
-# Check poppler-utils
-pdftoppm -v
+# Check Ghostscript
+gs --version
 
 # Check Node packages
-npm list pdf-poppler sharp
+npm list sharp pdf-lib
 ```
 
 ## Troubleshooting
 
-### "pdftoppm not found"
+### "gs: command not found"
 
-**Problem:** poppler-utils not installed
+**Problem:** Ghostscript not installed
 
 **Solution:**
 
 ```bash
 # macOS
-brew install poppler
+brew install ghostscript
 
 # Ubuntu/Debian
-sudo apt-get install poppler-utils
+sudo apt-get install ghostscript
 ```
 
-### "Cannot find module 'pdf-poppler'"
+### "Cannot find module 'sharp'"
 
 **Problem:** npm packages not installed
 
