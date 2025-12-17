@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs", "ghostscript"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npm run build", "cd frontend && npm install && npm run build && cd .."]
+
+[start]
+cmd = "NODE_ENV=production node dist/index.js"

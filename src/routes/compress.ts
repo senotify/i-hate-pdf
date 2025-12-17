@@ -2,6 +2,8 @@ import { Router, Request, Response } from "express";
 import { PDFDocument } from "pdf-lib";
 import fs from "fs";
 import path from "path";
+import { exec } from "child_process";
+import { promisify } from "util";
 import { metadataStorage, createFileMetadata } from "../utils/metadata";
 import { getUploadDirectory } from "../utils/storage";
 import { ErrorResponse } from "../types";
@@ -10,6 +12,8 @@ import {
   uploadBufferToCloudinary,
   isCloudinaryConfigured,
 } from "../utils/cloudinaryStorage";
+
+const execAsync = promisify(exec);
 
 const router = Router();
 const USE_CLOUDINARY = isCloudinaryConfigured();
@@ -151,11 +155,72 @@ router.post("/compress", async (req: Request, res: Response) => {
 });
 
 /**
- * Compress PDF based on compression level
- * Creates a new PDF with compressed content by copying pages
- * This removes unnecessary metadata and optimizes the structure
+ * Check if Ghostscript is available
  */
-async function compressPdf(
+async function isGhostscriptAvailable(): Promise<boolean> {
+  try {
+    await execAsync("gs --version");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Compress PDF using Ghostscript
+ */
+async function compressWithGhostscript(
+  pdfDoc: PDFDocument,
+  level: CompressionLevel
+): Promise<Uint8Array> {
+  const tempInputPath = path.join(
+    getUploadDirectory(),
+    `temp_input_${Date.now()}.pdf`
+  );
+  const tempOutputPath = path.join(
+    getUploadDirectory(),
+    `temp_output_${Date.now()}.pdf`
+  );
+
+  try {
+    // Save original PDF
+    const pdfBytes = await pdfDoc.save();
+    fs.writeFileSync(tempInputPath, pdfBytes);
+
+    // Ghostscript compression settings based on level
+    const settings = {
+      low: "printer", // 300 DPI, good quality
+      medium: "ebook", // 150 DPI, medium quality
+      high: "screen", // 72 DPI, maximum compression
+    };
+
+    const pdfsetting = settings[level];
+
+    // Run Ghostscript to compress the PDF
+    const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/${pdfsetting} -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${tempOutputPath}" "${tempInputPath}"`;
+
+    await execAsync(gsCommand);
+
+    // Read the compressed PDF
+    const compressedBytes = fs.readFileSync(tempOutputPath);
+
+    return new Uint8Array(compressedBytes);
+  } finally {
+    // Clean up temporary files
+    if (fs.existsSync(tempInputPath)) {
+      fs.unlinkSync(tempInputPath);
+    }
+    if (fs.existsSync(tempOutputPath)) {
+      fs.unlinkSync(tempOutputPath);
+    }
+  }
+}
+
+/**
+ * Fallback compression using pdf-lib
+ * Creates a new PDF document and copies pages to remove metadata
+ */
+async function compressWithPdfLib(
   pdfDoc: PDFDocument,
   level: CompressionLevel
 ): Promise<Uint8Array> {
@@ -164,25 +229,43 @@ async function compressPdf(
 
   // Copy all pages from the original document
   const pageCount = pdfDoc.getPageCount();
-  const pageIndices = Array.from({ length: pageCount }, (_, i) => i);
+  const copiedPages = await newPdfDoc.copyPages(
+    pdfDoc,
+    Array.from({ length: pageCount }, (_, i) => i)
+  );
 
-  // Copy pages to new document (this removes unnecessary data)
-  const copiedPages = await newPdfDoc.copyPages(pdfDoc, pageIndices);
+  // Add copied pages to the new document
   copiedPages.forEach((page) => {
     newPdfDoc.addPage(page);
   });
 
   // Save with compression options based on level
   const saveOptions = {
-    useObjectStreams: true, // Always use object streams for better compression
+    useObjectStreams: true,
     addDefaultPage: false,
+    objectsPerTick: level === "high" ? 50 : level === "medium" ? 100 : 200,
   };
 
-  // For different compression levels, we could adjust quality settings
-  // but pdf-lib has limited compression options
-  // The main compression comes from removing metadata and optimizing structure
-
   return await newPdfDoc.save(saveOptions);
+}
+
+/**
+ * Compress PDF based on compression level
+ * Uses Ghostscript if available, falls back to pdf-lib
+ */
+async function compressPdf(
+  pdfDoc: PDFDocument,
+  level: CompressionLevel
+): Promise<Uint8Array> {
+  const hasGhostscript = await isGhostscriptAvailable();
+
+  if (hasGhostscript) {
+    console.log("Using Ghostscript for compression");
+    return await compressWithGhostscript(pdfDoc, level);
+  } else {
+    console.log("Ghostscript not available, using pdf-lib fallback");
+    return await compressWithPdfLib(pdfDoc, level);
+  }
 }
 
 export default router;

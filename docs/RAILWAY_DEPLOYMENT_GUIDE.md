@@ -240,6 +240,29 @@ restartPolicyMaxRetries = 10
 - Sets up health checks
 - Auto-restart on failures (up to 10 retries)
 
+### `nixpacks.toml`
+
+```toml
+[phases.setup]
+nixPkgs = ["nodejs", "ghostscript"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npm run build", "cd frontend && npm install && npm run build && cd .."]
+
+[start]
+cmd = "NODE_ENV=production node dist/index.js"
+```
+
+**What it does:**
+
+- Installs system packages: Node.js and Ghostscript
+- Ghostscript enables high-quality PDF compression
+- Configures build and start commands
+- Fallback to pdf-lib if Ghostscript unavailable
+
 ---
 
 ## 📊 Monitoring Your App

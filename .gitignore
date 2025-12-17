@@ -12,6 +12,8 @@ frontend/dist/
 
 # Uploads directory
 uploads/
+temp_input_*.pdf
+temp_output_*.pdf
 
 # Logs
 *.log

@@ -2,6 +2,15 @@
 
 A comprehensive web-based PDF manipulation application that makes working with PDFs easy and free.
 
+## Features
+
+- 📄 **Merge PDFs** - Combine multiple PDFs with drag-and-drop reordering
+- 🗜️ **Compress PDFs** - Reduce file size with Ghostscript (3 quality levels)
+- ✂️ **Split PDFs** - Extract specific pages or ranges
+- ✏️ **Edit PDFs** - Rotate, delete, and reorder pages with live preview
+- 🖼️ **Add Watermarks** - Text or image watermarks with customization
+- 📤 **Upload & Download** - Secure file handling with automatic cleanup
+
 ## Project Structure
 
 ```
@@ -17,6 +26,7 @@ ihatepdf/
 │       ├── services/      # API client services
 │       ├── utils/         # Frontend utilities
 │       └── types/         # Frontend type definitions
+├── docs/                  # Documentation
 └── uploads/               # Temporary file storage (auto-created)
 ```
 
@@ -61,3 +71,55 @@ npm test
 cd frontend
 npm test
 ```
+
+## Deployment
+
+See [docs/RAILWAY_DEPLOYMENT_GUIDE.md](docs/RAILWAY_DEPLOYMENT_GUIDE.md) for detailed Railway deployment instructions.
+
+Quick deploy:
+
+```bash
+# Push to GitHub
+git push origin main
+
+# Railway will auto-deploy with:
+# - Node.js + Ghostscript
+# - Automatic builds
+# - Health checks
+```
+
+## Documentation
+
+- [Railway Deployment Guide](docs/RAILWAY_DEPLOYMENT_GUIDE.md) - Complete deployment walkthrough
+- [Railway Troubleshooting](docs/RAILWAY_TROUBLESHOOTING.md) - Common issues and solutions
+- [Ghostscript Compression](docs/GHOSTSCRIPT_COMPRESSION.md) - PDF compression details
+- [Security Assessment](docs/SECURITY_ASSESSMENT.md) - Security features and best practices
+- [Storage Architecture](docs/STORAGE_ARCHITECTURE.md) - File storage system design
+- [Cloudinary Setup](docs/CLOUDINARY_SETUP.md) - Cloud storage configuration
+
+## Tech Stack
+
+**Backend:**
+
+- Node.js + Express + TypeScript
+- pdf-lib - PDF manipulation
+- Ghostscript - High-quality compression
+- Multer - File uploads
+- Helmet + CORS - Security
+
+**Frontend:**
+
+- React + TypeScript + Vite
+- TailwindCSS - Styling
+- pdf.js - PDF rendering
+- Lucide React - Icons
+
+**Deployment:**
+
+- Railway.app - Hosting
+- Nixpacks - Build system
+- Cloudinary - Optional cloud storage
+
+## License
+
+MIT
