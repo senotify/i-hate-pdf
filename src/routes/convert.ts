@@ -11,6 +11,8 @@ import {
   isCloudinaryConfigured,
 } from "../utils/cloudinaryStorage";
 import { detectFileType, getMimeType } from "../utils/fileValidation";
+import { convert as pdfPoppler } from "pdf-poppler";
+import sharp from "sharp";
 
 const router = Router();
 const USE_CLOUDINARY = isCloudinaryConfigured();
@@ -141,35 +143,103 @@ async function convertPdfToImage(
   format: string,
   sourceFileId: string
 ): Promise<any> {
-  // Load the PDF document
-  const pdfDoc = await PDFDocument.load(pdfBytes);
-  const pages = pdfDoc.getPages();
-
-  // For simplicity, we'll convert only the first page
-  // In a production system, you might want to convert all pages or allow page selection
-  const firstPage = pages[0];
-  const { width, height } = firstPage.getSize();
-
-  // Create a new PDF with just the first page
-  const singlePagePdf = await PDFDocument.create();
-  const [copiedPage] = await singlePagePdf.copyPages(pdfDoc, [0]);
-  singlePagePdf.addPage(copiedPage);
-
-  const singlePageBytes = await singlePagePdf.save();
-
-  // Note: pdf-lib doesn't support direct PDF to image conversion
-  // In a production environment, you would use a library like pdf-poppler or pdf2pic
-  // For now, we'll create a simple representation by embedding the PDF page
-  // This is a limitation - proper implementation would require additional libraries
-
-  // Generate output filename
-  const extension = format === "jpeg" || format === "jpg" ? "jpg" : format;
-  const outputFilename = `converted_${Date.now()}.${extension}`;
-
-  // For this implementation, we'll return an error indicating the limitation
-  throw new Error(
-    "PDF to image conversion requires additional libraries (pdf-poppler, sharp). This is a placeholder implementation."
+  const tempInputPath = path.join(
+    getUploadDirectory(),
+    `temp_pdf_${Date.now()}.pdf`
   );
+  const tempOutputDir = getUploadDirectory();
+
+  try {
+    // Write PDF to temporary file
+    fs.writeFileSync(tempInputPath, pdfBytes);
+
+    // Convert PDF to image using pdf-poppler
+    // This converts the first page to PNG
+    const options = {
+      format: "png" as const,
+      out_dir: tempOutputDir,
+      out_prefix: `temp_convert_${Date.now()}`,
+      page: 1, // Convert only first page
+    };
+
+    await pdfPoppler(tempInputPath, options);
+
+    // Read the generated PNG file
+    const generatedPngPath = path.join(
+      tempOutputDir,
+      `${options.out_prefix}-1.png`
+    );
+    let imageBuffer: Buffer = fs.readFileSync(generatedPngPath);
+
+    // Convert to requested format using sharp if needed
+    const extension = format === "jpeg" || format === "jpg" ? "jpg" : format;
+    if (extension === "jpg") {
+      imageBuffer = Buffer.from(
+        await sharp(imageBuffer).jpeg({ quality: 90 }).toBuffer()
+      );
+    } else if (extension === "png") {
+      imageBuffer = Buffer.from(await sharp(imageBuffer).png().toBuffer());
+    }
+
+    // Generate output filename
+    const outputFilename = `converted_${Date.now()}.${extension}`;
+    const mimeType = extension === "jpg" ? "image/jpeg" : `image/${extension}`;
+    let outputMetadata;
+
+    if (USE_CLOUDINARY) {
+      // Upload to Cloudinary
+      const cloudinaryResult = await uploadBufferToCloudinary(
+        imageBuffer,
+        outputFilename
+      );
+
+      // Create metadata for converted file
+      outputMetadata = createFileMetadata(
+        outputFilename,
+        cloudinaryResult.publicId,
+        mimeType,
+        cloudinaryResult.bytes,
+        true,
+        [sourceFileId],
+        "cloudinary",
+        cloudinaryResult.publicId,
+        cloudinaryResult.secureUrl
+      );
+    } else {
+      // Save to local storage
+      const outputPath = path.join(getUploadDirectory(), outputFilename);
+      fs.writeFileSync(outputPath, imageBuffer);
+
+      // Create metadata for converted file
+      outputMetadata = createFileMetadata(
+        outputFilename,
+        outputPath,
+        mimeType,
+        imageBuffer.length,
+        true,
+        [sourceFileId],
+        "local"
+      );
+    }
+
+    // Store metadata
+    metadataStorage.set(outputMetadata.fileId, outputMetadata);
+
+    // Clean up temporary PNG file
+    if (fs.existsSync(generatedPngPath)) {
+      fs.unlinkSync(generatedPngPath);
+    }
+
+    return {
+      outputFileId: outputMetadata.fileId,
+      downloadUrl: `/api/download/${outputMetadata.fileId}`,
+    };
+  } finally {
+    // Clean up temporary PDF file
+    if (fs.existsSync(tempInputPath)) {
+      fs.unlinkSync(tempInputPath);
+    }
+  }
 }
 
 /**

@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs", "ghostscript"]
+nixPkgs = ["nodejs", "ghostscript", "poppler_utils"]
 
 [phases.install]
 cmds = ["npm install"]
