@@ -10,6 +10,10 @@ import {
   EditOperation,
 } from "../services/api";
 import PDFPreviewModal from "./PDFPreviewModal";
+import * as pdfjsLib from "pdfjs-dist";
+
+// Set up PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 interface EditToolProps {
   file: UploadedFile | null;
@@ -21,6 +25,7 @@ interface PageThumbnailProps {
   preview: PagePreview;
   index: number;
   isSelected: boolean;
+  thumbnailUrl?: string;
   onToggleSelect: (index: number) => void;
   movePage: (dragIndex: number, hoverIndex: number) => void;
 }
@@ -31,6 +36,7 @@ function PageThumbnail({
   preview,
   index,
   isSelected,
+  thumbnailUrl,
   onToggleSelect,
   movePage,
 }: PageThumbnailProps) {
@@ -67,9 +73,9 @@ function PageThumbnail({
         }
       `}
     >
-      {preview.thumbnail ? (
+      {thumbnailUrl ? (
         <img
-          src={`data:image/png;base64,${preview.thumbnail}`}
+          src={thumbnailUrl}
           alt={`Page ${preview.pageNumber}`}
           className="w-full h-full object-cover"
         />
@@ -108,6 +114,9 @@ export default function EditTool({
   onError,
 }: EditToolProps) {
   const [previews, setPreviews] = useState<PagePreview[]>([]);
+  const [pageThumbnails, setPageThumbnails] = useState<{
+    [key: number]: string;
+  }>({});
   const [isLoadingPreviews, setIsLoadingPreviews] = useState(false);
   const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set());
   const [isEditing, setIsEditing] = useState(false);
@@ -145,6 +154,40 @@ export default function EditTool({
       setPreviews(response.previews);
       // Store original order (0-indexed)
       setOriginalOrder(response.previews.map((_, idx) => idx));
+
+      // Generate thumbnails for all pages
+      const apiUrl = getApiBaseUrl();
+      const pdfResponse = await fetch(`${apiUrl}/api/download/${file.fileId}`);
+
+      if (!pdfResponse.ok) {
+        throw new Error("Failed to fetch PDF");
+      }
+
+      const arrayBuffer = await pdfResponse.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+      const thumbnails: { [key: number]: string } = {};
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 0.5 }); // Smaller scale for thumbnails
+
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) continue;
+
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        await page.render({
+          canvasContext: context,
+          viewport: viewport,
+          canvas: canvas,
+        }).promise;
+
+        thumbnails[pageNum] = canvas.toDataURL();
+      }
+
+      setPageThumbnails(thumbnails);
     } catch (err: any) {
       const errorMsg = err.error?.message || "Failed to load page previews";
       setError(errorMsg);
@@ -458,6 +501,7 @@ export default function EditTool({
                       preview={preview}
                       index={index}
                       isSelected={selectedPages.has(index)}
+                      thumbnailUrl={pageThumbnails[preview.pageNumber]}
                       onToggleSelect={togglePageSelection}
                       movePage={movePage}
                     />
