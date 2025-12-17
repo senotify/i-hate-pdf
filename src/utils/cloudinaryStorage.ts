@@ -1,5 +1,4 @@
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
-import fs from "fs";
 import { Readable } from "stream";
 
 // Configure Cloudinary
@@ -34,6 +33,7 @@ export async function uploadToCloudinary(
       {
         folder,
         resource_type: "raw", // For non-image files like PDFs
+        type: "upload", // Use standard public delivery
         use_filename: false,
         unique_filename: true,
       }
@@ -59,13 +59,11 @@ export async function uploadToCloudinary(
 /**
  * Upload a buffer to Cloudinary
  * @param buffer - File buffer to upload
- * @param filename - Original filename
  * @param folder - Cloudinary folder (default: pdf-toolkit)
  * @returns Upload result with public ID and URLs
  */
 export async function uploadBufferToCloudinary(
   buffer: Buffer,
-  filename: string,
   folder: string = "pdf-toolkit"
 ): Promise<CloudinaryUploadResult> {
   return new Promise((resolve, reject) => {
@@ -73,6 +71,7 @@ export async function uploadBufferToCloudinary(
       {
         folder,
         resource_type: "raw",
+        type: "upload", // Use standard public delivery
         use_filename: false,
         unique_filename: true,
       },
@@ -101,27 +100,40 @@ export async function uploadBufferToCloudinary(
 
 /**
  * Download a file from Cloudinary
- * @param publicId - Cloudinary public ID
+ * @param publicId - Cloudinary public ID (may include extension for raw files)
  * @returns File buffer
  */
 export async function downloadFromCloudinary(
   publicId: string
 ): Promise<Buffer> {
   try {
-    const url = cloudinary.url(publicId, {
+    console.log(`Downloading from Cloudinary: ${publicId}`);
+
+    // Generate a signed URL for download
+    const signedUrl = cloudinary.url(publicId, {
       resource_type: "raw",
+      type: "upload",
+      sign_url: true,
       secure: true,
     });
 
-    // Fetch the file from Cloudinary
-    const response = await fetch(url);
+    console.log(`Downloading from signed URL`);
+
+    // Download the file
+    const response = await fetch(signedUrl);
+
+    console.log(`Response status: ${response.status} ${response.statusText}`);
+
     if (!response.ok) {
-      throw new Error(`Failed to download file: ${response.statusText}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
+    console.log(`Successfully downloaded ${arrayBuffer.byteLength} bytes`);
+
     return Buffer.from(arrayBuffer);
   } catch (error) {
+    console.error("Cloudinary download error:", error);
     throw new Error(
       `Failed to download from Cloudinary: ${
         error instanceof Error ? error.message : String(error)

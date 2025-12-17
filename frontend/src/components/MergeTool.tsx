@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getApiBaseUrl } from "../utils/apiUrl";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { DndMultiBackend, DndBackendOptions } from "../utils/dndBackend";
@@ -91,6 +91,11 @@ export default function MergeTool({
   const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
+  // Update orderedFiles when files prop changes
+  useEffect(() => {
+    setOrderedFiles(files);
+  }, [files]);
+
   const moveFile = (dragIndex: number, hoverIndex: number) => {
     const newFiles = [...orderedFiles];
     const [draggedFile] = newFiles.splice(dragIndex, 1);
@@ -129,9 +134,7 @@ export default function MergeTool({
 
   const handleDownload = () => {
     if (mergeResult) {
-      const downloadUrl = `${
-        getApiBaseUrl()
-      }${mergeResult.downloadUrl}`;
+      const downloadUrl = `${getApiBaseUrl()}${mergeResult.downloadUrl}`;
       window.open(downloadUrl, "_blank");
     }
   };

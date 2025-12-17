@@ -26,6 +26,18 @@ const router = Router();
 
 // Determine storage type based on environment
 const USE_CLOUDINARY = isCloudinaryConfigured();
+console.log("=== Cloudinary Configuration ===");
+console.log("CLOUDINARY_CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
+console.log(
+  "CLOUDINARY_API_KEY:",
+  process.env.CLOUDINARY_API_KEY ? "SET" : "NOT SET"
+);
+console.log(
+  "CLOUDINARY_API_SECRET:",
+  process.env.CLOUDINARY_API_SECRET ? "SET" : "NOT SET"
+);
+console.log("USE_CLOUDINARY:", USE_CLOUDINARY);
+console.log("================================");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
