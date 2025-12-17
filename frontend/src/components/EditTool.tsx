@@ -9,6 +9,7 @@ import {
   PagePreview,
   EditOperation,
 } from "../services/api";
+import PDFPreviewModal from "./PDFPreviewModal";
 
 interface EditToolProps {
   file: UploadedFile | null;
@@ -110,6 +111,7 @@ export default function EditTool({
   const [hasChanges, setHasChanges] = useState(false);
   const [originalOrder, setOriginalOrder] = useState<number[]>([]);
   const [rotations, setRotations] = useState<Map<number, number>>(new Map());
+  const [showPreview, setShowPreview] = useState(false);
 
   // Load previews when file changes
   useEffect(() => {
@@ -299,6 +301,7 @@ export default function EditTool({
       const response = await editFile(file.fileId, operations);
       setEditResult(response);
       setHasChanges(false);
+      setShowPreview(true);
       onEditComplete?.(response.outputFileId, response.downloadUrl);
     } catch (err: any) {
       const errorMsg =
@@ -312,9 +315,7 @@ export default function EditTool({
 
   const handleDownload = () => {
     if (editResult) {
-      const downloadUrl = `${
-        getApiBaseUrl()
-      }${editResult.downloadUrl}`;
+      const downloadUrl = `${getApiBaseUrl()}${editResult.downloadUrl}`;
       window.open(downloadUrl, "_blank");
     }
   };
@@ -507,7 +508,7 @@ export default function EditTool({
         )}
 
         {/* Success Display */}
-        {editResult && (
+        {editResult && !showPreview && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -527,15 +528,26 @@ export default function EditTool({
                 </p>
               </div>
               <button
-                onClick={handleDownload}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                onClick={() => setShowPreview(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
               >
-                Download
+                Preview & Download
               </button>
             </div>
           </div>
         )}
       </div>
+
+      {/* PDF Preview Modal */}
+      {editResult && (
+        <PDFPreviewModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          onDownload={handleDownload}
+          fileId={editResult.outputFileId}
+          title="Edited PDF Preview"
+        />
+      )}
     </DndProvider>
   );
 }
