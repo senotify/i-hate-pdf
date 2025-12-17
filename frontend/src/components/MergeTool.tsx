@@ -91,10 +91,22 @@ export default function MergeTool({
   const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  // Update orderedFiles when files prop changes
+  // Update orderedFiles when files are added or removed (but not reordered)
   useEffect(() => {
-    setOrderedFiles(files);
-  }, [files]);
+    // Only update if the number of files changed or file IDs are different
+    if (files.length !== orderedFiles.length) {
+      setOrderedFiles(files);
+    } else {
+      // Check if any file IDs are different
+      const currentIds = new Set(orderedFiles.map((f) => f.fileId));
+      const newIds = files.map((f) => f.fileId);
+      const hasNewFiles = newIds.some((id) => !currentIds.has(id));
+
+      if (hasNewFiles) {
+        setOrderedFiles(files);
+      }
+    }
+  }, [files, orderedFiles]);
 
   const moveFile = (dragIndex: number, hoverIndex: number) => {
     const newFiles = [...orderedFiles];

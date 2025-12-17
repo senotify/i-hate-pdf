@@ -136,14 +136,14 @@ export default function PDFPreviewModal({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-hidden flex">
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-12">
+              <div className="flex flex-col items-center justify-center py-12 w-full">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
                 <p className="text-gray-600">Loading preview...</p>
               </div>
             ) : error ? (
-              <div className="flex flex-col items-center justify-center py-12">
+              <div className="flex flex-col items-center justify-center py-12 w-full">
                 <svg
                   className="h-12 w-12 text-red-400 mb-4"
                   fill="none"
@@ -160,72 +160,29 @@ export default function PDFPreviewModal({
                 <p className="text-red-600">{error}</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {/* Page Display */}
-                <div className="flex justify-center bg-gray-100 rounded-lg p-4">
-                  {pageImages[currentPage] ? (
-                    <img
-                      src={pageImages[currentPage]}
-                      alt={`Page ${currentPage}`}
-                      className="max-w-full h-auto shadow-lg"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-96">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Page Navigation */}
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={goToPreviousPage}
-                    disabled={currentPage === 1}
-                    className={`
-                      px-4 py-2 rounded-lg font-medium transition-colors
-                      ${
-                        currentPage === 1
-                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          : "bg-blue-600 text-white hover:bg-blue-700"
-                      }
-                    `}
-                  >
-                    ← Previous
-                  </button>
-
-                  <span className="text-sm text-gray-600">
-                    Page {currentPage} of {totalPages}
-                  </span>
-
-                  <button
-                    onClick={goToNextPage}
-                    disabled={currentPage === totalPages}
-                    className={`
-                      px-4 py-2 rounded-lg font-medium transition-colors
-                      ${
-                        currentPage === totalPages
-                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          : "bg-blue-600 text-white hover:bg-blue-700"
-                      }
-                    `}
-                  >
-                    Next →
-                  </button>
-                </div>
-
-                {/* Page Thumbnails */}
-                <div className="border-t pt-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">
-                    Jump to page:
+              <>
+                {/* Left Sidebar - Page Thumbnails */}
+                <div className="w-48 border-r bg-gray-50 overflow-y-auto p-4">
+                  <p className="text-sm font-medium text-gray-700 mb-3">
+                    Pages ({totalPages})
                   </p>
-                  <div className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto">
+                  <div className="space-y-3">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                       (pageNum) => (
                         <button
                           key={pageNum}
-                          onClick={() => setCurrentPage(pageNum)}
+                          onClick={() => {
+                            const element = document.getElementById(
+                              `page-${pageNum}`
+                            );
+                            element?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start",
+                            });
+                            setCurrentPage(pageNum);
+                          }}
                           className={`
-                            relative aspect-[3/4] border-2 rounded overflow-hidden
+                            relative w-full aspect-[3/4] border-2 rounded overflow-hidden
                             transition-all hover:scale-105
                             ${
                               pageNum === currentPage
@@ -245,15 +202,45 @@ export default function PDFPreviewModal({
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                             </div>
                           )}
-                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs text-center py-0.5">
-                            {pageNum}
+                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs text-center py-1">
+                            Page {pageNum}
                           </div>
                         </button>
                       )
                     )}
                   </div>
                 </div>
-              </div>
+
+                {/* Right Side - Scrollable Full Document */}
+                <div className="flex-1 overflow-y-auto p-6 bg-gray-100">
+                  <div className="max-w-3xl mx-auto space-y-6">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (pageNum) => (
+                        <div
+                          key={pageNum}
+                          id={`page-${pageNum}`}
+                          className="bg-white rounded-lg shadow-lg p-4"
+                        >
+                          <div className="text-sm text-gray-600 mb-2 font-medium">
+                            Page {pageNum} of {totalPages}
+                          </div>
+                          {pageImages[pageNum] ? (
+                            <img
+                              src={pageImages[pageNum]}
+                              alt={`Page ${pageNum}`}
+                              className="w-full h-auto"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-96 bg-gray-50">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
