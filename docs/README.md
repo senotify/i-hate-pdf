@@ -14,9 +14,10 @@ Complete documentation for the IHatePDF application.
 ## 🔧 Technical Documentation
 
 - **[Ghostscript Compression](GHOSTSCRIPT_COMPRESSION.md)** - PDF compression implementation details
-- **[PDF Conversion](PDF_CONVERSION.md)** - PDF ↔ Image conversion with poppler-utils
+- **[PDF Conversion](PDF_CONVERSION.md)** - PDF ↔ Image conversion with Ghostscript
 - **[Storage Architecture](STORAGE_ARCHITECTURE.md)** - File storage system design
 - **[Security Assessment](SECURITY_ASSESSMENT.md)** - Security features and best practices
+- **[SEO Guide](SEO_GUIDE.md)** - Make your site searchable on Google
 
 ## ☁️ Cloud Storage
 
