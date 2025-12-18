@@ -15,6 +15,33 @@ const router = Router();
 const USE_CLOUDINARY = isCloudinaryConfigured();
 
 /**
+ * Sanitize watermark text to prevent injection attacks
+ */
+function sanitizeWatermarkText(text: string): string | null {
+  if (!text || typeof text !== "string") {
+    return null;
+  }
+
+  // Limit length to prevent DoS
+  if (text.length > 500) {
+    return null;
+  }
+
+  // Remove potentially dangerous characters and patterns
+  let sanitized = text
+    .replace(/<script[^>]*>.*?<\/script>/gi, "") // Remove script tags
+    .replace(/javascript:/gi, "") // Remove javascript: protocol
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, "") // Remove event handlers
+    .replace(/[<>]/g, ""); // Remove angle brackets
+
+  // Trim whitespace
+  sanitized = sanitized.trim();
+
+  // Return null if empty after sanitization
+  return sanitized.length > 0 ? sanitized : null;
+}
+
+/**
  * POST /api/watermark
  * Add a watermark to a PDF
  */
@@ -52,6 +79,18 @@ router.post("/watermark", async (req: Request, res: Response) => {
         error: {
           code: "INVALID_INPUT",
           message: "options.text must be a string",
+        },
+      };
+      return res.status(400).json(error);
+    }
+
+    // Sanitize and validate watermark text
+    const sanitizedText = sanitizeWatermarkText(options.text);
+    if (!sanitizedText) {
+      const error: ErrorResponse = {
+        error: {
+          code: "INVALID_INPUT",
+          message: "Watermark text is invalid or too long (max 500 characters)",
         },
       };
       return res.status(400).json(error);
@@ -111,7 +150,7 @@ router.post("/watermark", async (req: Request, res: Response) => {
       const { width, height } = page.getSize();
 
       // Calculate text dimensions
-      const textWidth = font.widthOfTextAtSize(options.text, fontSize);
+      const textWidth = font.widthOfTextAtSize(sanitizedText, fontSize);
       const textHeight = fontSize;
 
       // Calculate position
@@ -164,7 +203,7 @@ router.post("/watermark", async (req: Request, res: Response) => {
       }
 
       // Draw the watermark
-      page.drawText(options.text, {
+      page.drawText(sanitizedText, {
         x,
         y,
         size: fontSize,
