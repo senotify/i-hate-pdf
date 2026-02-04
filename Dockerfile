@@ -7,7 +7,7 @@ WORKDIR /app/frontend
 # Copy frontend package files
 COPY frontend/package*.json ./
 
-# Install ALL dependencies (not --only=production)
+# Install ALL dependencies
 RUN npm ci
 
 # Copy frontend source
@@ -25,7 +25,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
 
-# Install ALL dependencies (not --only=production)
+# Install ALL dependencies
 RUN npm ci
 
 # Copy backend source
@@ -37,7 +37,7 @@ RUN npm run build
 # Stage 3: Production image
 FROM node:20-alpine
 
-# Install system dependencies (Ghostscript and Sharp dependencies)
+# Install system dependencies
 RUN apk add --no-cache \
     ghostscript \
     vips-dev \
@@ -48,14 +48,28 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Copy backend dependencies and build
+# Copy package files
 COPY package*.json ./
 
-# NOW use --only=production for the final image
+# Install ONLY production dependencies
 RUN npm ci --only=production
 
 # Copy backend build
 COPY --from=backend-builder /app/dist ./dist
 
 # Copy frontend build
-COPY --from=frontend-builder /app/f
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+
+# Create uploads directory
+RUN mkdir -p uploads && chmod 777 uploads
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(
