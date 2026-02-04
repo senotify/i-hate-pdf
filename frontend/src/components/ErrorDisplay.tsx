@@ -85,7 +85,7 @@ export default function ErrorDisplay({
                 </ul>
               </div>
             )}
-            {error.details && process.env.NODE_ENV === "development" && (
+            {error.details && import.meta.env.DEV && (
               <div className="mt-2 text-xs text-red-600 font-mono">
                 {typeof error.details === "string"
                   ? error.details
@@ -144,7 +144,7 @@ function getErrorDetails(error: ErrorInfo): {
     case "FILE_NOT_FOUND":
       friendlyMessage = "File not found";
       suggestions.push(
-        "The file may have expired (files are kept for 60 minutes)"
+        "The file may have expired (files are kept for 60 minutes)",
       );
       suggestions.push("Please upload the file again");
       break;
@@ -163,10 +163,10 @@ function getErrorDetails(error: ErrorInfo): {
     case "SPLIT_ERROR":
       friendlyMessage = "Failed to split PDF file";
       suggestions.push(
-        "Check that your page ranges are valid (e.g., '1-5, 8, 10-12')"
+        "Check that your page ranges are valid (e.g., '1-5, 8, 10-12')",
       );
       suggestions.push(
-        "Make sure page numbers don't exceed the document length"
+        "Make sure page numbers don't exceed the document length",
       );
       break;
 
