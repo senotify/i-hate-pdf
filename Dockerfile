@@ -37,13 +37,18 @@ RUN npm run build
 # Stage 3: Production image
 FROM node:20-alpine
 
-# Install system dependencies
+# Install system dependencies BEFORE npm install
 RUN apk add --no-cache \
     ghostscript \
     vips-dev \
     fftw-dev \
     build-base \
     python3 \
+    pkgconfig \
+    gcc \
+    g++ \
+    make \
+    libc6-compat \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /app
@@ -51,8 +56,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install ONLY production dependencies
-RUN npm ci --only=production
+# Install production dependencies (sharp will build with the tools above)
+RUN npm ci --omit=dev
 
 # Copy backend build
 COPY --from=backend-builder /app/dist ./dist
@@ -72,4 +77,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Run the application
+CMD ["node", "dist/index.js"]
