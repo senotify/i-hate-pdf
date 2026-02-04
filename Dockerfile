@@ -5,14 +5,14 @@ FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 
 COPY frontend/package*.json ./
-COPY frontend/tsconfig.json ./
-
-# Install dependencies including dev dependencies for build
 RUN npm ci
 
 COPY frontend/ ./
 
-# Build frontend (excluding test files)
+# Remove test files before build
+RUN find . -name "*.test.ts" -o -name "*.test.tsx" -o -name "*.spec.ts" -o -name "*.spec.tsx" | xargs rm -f
+
+# Build frontend
 RUN npm run build
 
 # Stage 2: Build backend and install dependencies
