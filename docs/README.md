@@ -5,6 +5,7 @@ Complete documentation for the IHatePDF application.
 ## 🚀 Deployment
 
 - **[Railway Deployment Guide](RAILWAY_DEPLOYMENT_GUIDE.md)** - Step-by-step deployment to Railway
+- **[Docker Deployment](DOCKER_DEPLOYMENT.md)** - Complete Docker and Docker Compose guide
 - **[Railway Quick Start](RAILWAY_QUICK_START.md)** - Fast deployment checklist
 - **[Railway Troubleshooting](RAILWAY_TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Railway Checklist](RAILWAY_CHECKLIST.md)** - Pre-deployment checklist

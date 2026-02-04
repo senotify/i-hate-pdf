@@ -74,6 +74,8 @@ npm test
 
 ## Deployment
 
+### Railway (Recommended)
+
 See [docs/RAILWAY_DEPLOYMENT_GUIDE.md](docs/RAILWAY_DEPLOYMENT_GUIDE.md) for detailed Railway deployment instructions.
 
 Quick deploy:
@@ -86,6 +88,29 @@ git push origin main
 # - Node.js + Ghostscript
 # - Automatic builds
 # - Health checks
+```
+
+### Docker
+
+See [docs/DOCKER_DEPLOYMENT.md](docs/DOCKER_DEPLOYMENT.md) for complete Docker guide.
+
+Quick start:
+
+```bash
+# Using Docker Compose
+docker-compose up -d
+
+# Access at http://localhost:3000
+```
+
+Build and run manually:
+
+```bash
+# Build image
+docker build -t ihatepdf .
+
+# Run container
+docker run -d -p 3000:3000 ihatepdf
 ```
 
 ## Documentation
