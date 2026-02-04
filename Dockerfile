@@ -7,8 +7,8 @@ WORKDIR /app/frontend
 # Copy frontend package files
 COPY frontend/package*.json ./
 
-# Install frontend dependencies
-RUN npm ci --only=production
+# Install ALL dependencies (not --only=production)
+RUN npm ci
 
 # Copy frontend source
 COPY frontend/ ./
@@ -25,7 +25,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
 
-# Install backend dependencies
+# Install ALL dependencies (not --only=production)
 RUN npm ci
 
 # Copy backend source
@@ -49,26 +49,13 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy backend dependencies and build
-COPY --from=backend-builder /app/node_modules ./node_modules
+COPY package*.json ./
+
+# NOW use --only=production for the final image
+RUN npm ci --only=production
+
+# Copy backend build
 COPY --from=backend-builder /app/dist ./dist
-COPY --from=backend-builder /app/package*.json ./
 
 # Copy frontend build
-COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
-
-# Create uploads directory
-RUN mkdir -p uploads && chmod 777 uploads
-
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3000
-
-# Expose port
-EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
-
-# Run the application
-CMD ["node", "dist/index.js"]
+COPY --from=frontend-builder /app/f
