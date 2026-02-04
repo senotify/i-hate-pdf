@@ -1,10 +1,3 @@
-cd ~/docker-sites/ihatepdf
-
-# Backup current Dockerfile
-cp Dockerfile Dockerfile.old
-
-# Create the new Dockerfile
-cat > Dockerfile << 'EOF'
 # Multi-stage build for IHatePDF
 # Stage 1: Build frontend
 FROM node:20-alpine AS frontend-builder
@@ -70,11 +63,3 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 CMD ["node", "dist/index.js"]
-EOF
-
-# Verify it was created
-cat Dockerfile
-
-# Now rebuild
-docker-compose build --no-cache
-docker-compose up -d
