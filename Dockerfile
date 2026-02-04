@@ -22,12 +22,16 @@ RUN apk add --no-cache \
     pkgconfig \
     gcc \
     g++ \
-    make
+    make \
+    libc6-compat
 
 WORKDIR /app
 
 COPY package*.json ./
 COPY tsconfig.json ./
+
+# Force sharp to use prebuilt binaries
+ENV SHARP_IGNORE_GLOBAL_LIBVIPS=1
 
 RUN npm ci
 
@@ -42,7 +46,8 @@ FROM node:20-alpine
 RUN apk add --no-cache \
     ghostscript \
     vips \
-    fftw
+    fftw \
+    libc6-compat
 
 WORKDIR /app
 
