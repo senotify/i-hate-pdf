@@ -66,6 +66,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      # Needed for the compose file the scp step ships.
+      - uses: actions/checkout@v4
+
       - name: Deploy over SSH
         env:
           SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
