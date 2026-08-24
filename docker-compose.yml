@@ -1,6 +1,7 @@
 services:
   ihatepdf:
     build: .
+    image: ghcr.io/senotify/ihatepdf:${TAG:-latest}
     container_name: ihatepdf-app
     restart: unless-stopped
     environment:
