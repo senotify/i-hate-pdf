@@ -6,6 +6,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - ALLOWED_ORIGINS=https://ihatepdf.senotify.com
     volumes:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
