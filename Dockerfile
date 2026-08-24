@@ -50,6 +50,7 @@ FROM node:20-alpine
 
 RUN apk add --no-cache \
     ghostscript \
+    qpdf \
     vips \
     fftw \
     libc6-compat
